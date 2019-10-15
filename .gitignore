@@ -1,0 +1,8 @@
+*.pdf
+*.json
+
+train_articles/*
+sentiment_data/*
+.idea/*
+.vector_cache/*
+utils/__pycache__/*
