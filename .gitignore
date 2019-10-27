@@ -6,3 +6,4 @@ sentiment_data/*
 .idea/*
 .vector_cache/*
 utils/__pycache__/*
+utils/.vector_cache
