@@ -7,3 +7,5 @@ sentiment_data/*
 .vector_cache/*
 utils/__pycache__/*
 utils/.vector_cache
+utils/vocab_field.pt
+__pycache__

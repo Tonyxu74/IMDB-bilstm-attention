@@ -24,15 +24,16 @@ def predict(string, epoch):
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
 
-    TEXT = data.Field(lower=True, include_lengths=True, batch_first=True, preprocessing=append_endtag)
-    LABEL = data.Field(sequential=False)
-
-    train_iter = GenerateIter('../sentiment_data/train.csv', TEXT, LABEL, 200)
+    TEXT = torch.load('vocab_field.pt')
 
     probability, pred_class = model.predict(string, TEXT)
     print(probability)
     print(pred_class)
 
 
+def build_vocab():
+    print("todo")
+
+
 if __name__ == "__main__":
-    predict('This movie is the best.', epoch=15)
+    predict('This movie is bad.', epoch=10)

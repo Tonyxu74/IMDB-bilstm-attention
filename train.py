@@ -6,6 +6,7 @@ from torch import nn
 import torch
 import tqdm
 import numpy as np
+from opts import args
 
 '''
 Implement embeddings that are trainable, take pretrained weights from GLOVE
@@ -26,9 +27,9 @@ def train():
 
     optimizer = optim.Adam(
         model.parameters(),
-        lr=0.0001,
-        weight_decay=0.0001,
-        betas=(0.9, 0.999)
+        lr=args.lr,
+        weight_decay=args.weight_decay,
+        betas=(args.beta1, args.beta2)
     )
 
     lossfn = nn.CrossEntropyLoss()
@@ -47,14 +48,14 @@ def train():
     TEXT = data.Field(lower=True, include_lengths=True, batch_first=True, preprocessing=append_endtag)
     LABEL = data.Field(sequential=False)
 
-    train_iter = GenerateIter('./sentiment_data/train.csv', TEXT, LABEL, 200)
-    val_iter = GenerateIter('./sentiment_data/test.csv', TEXT, LABEL, 200)
+    train_iter = GenerateIter('./sentiment_data/train.csv', TEXT, LABEL, pad_length=args.review_length)
+    val_iter = GenerateIter('./sentiment_data/test.csv', TEXT, LABEL, pad_length=args.review_length)
 
     if torch.cuda.is_available():
         model = model.cuda()
         lossfn = lossfn.cuda()
 
-    for epoch in range(start_epoch, 51):
+    for epoch in range(start_epoch, args.num_epochs):
 
         pbar = tqdm.tqdm(train_iter)
 

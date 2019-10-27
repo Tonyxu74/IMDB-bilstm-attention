@@ -1,5 +1,4 @@
-import os
-import glob
+from opts import args
 import pandas as pd
 from torchtext.vocab import GloVe
 from torchtext import data
@@ -21,15 +20,10 @@ class IMDB_dataset(data.Dataset):
         """
 
         self.eval = eval
-
-        # fields = [('text', text_field), ('label', label_field)]
         dataset = []
 
         dataframe = pd.read_csv(path, sep="\t", encoding="utf-8")
-        # for i in range(dataframe.shape[0]):
-        #     review_text = dataframe['text'][i]
-        #     review_label = dataframe['label'][i]
-        #     dataset.append(data.Example.fromlist([review_text, review_label], fields))
+
         for i in range(dataframe.shape[0]):
             dataset.append({
                     'text': text_field.preprocess(dataframe['text'][i]),
@@ -39,7 +33,7 @@ class IMDB_dataset(data.Dataset):
 
         self.dataset = dataset
         if not self.eval:
-            text_field.build_vocab([t['text'] for t in dataset], vectors=GloVe(name='6B', dim=300))
+            text_field.build_vocab([t['text'] for t in dataset], vectors=GloVe(name='6B', dim=args.embedding_dims))
             label_field.build_vocab(t['label'] for t in dataset)
 
         self.TEXT = text_field
@@ -65,7 +59,7 @@ class IMDB_dataset(data.Dataset):
 
 def GenerateIter(path, text_field, label_field, pad_length, eval=False, shuffle=True):
     params = {
-        'batch_size': 8,
+        'batch_size': args.batch_size,
         'shuffle': shuffle,
         'num_workers': 0,
         'pin_memory': False,
