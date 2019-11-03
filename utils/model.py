@@ -27,27 +27,26 @@ class LSTMAttention(torch.nn.Module):
             batch_size = self.batch_size
 
         if self.use_gpu:
-            h0 = torch.zeros(2 * self.num_layers, batch_size, self.hidden_dim // 2).cuda()
-            c0 = torch.zeros(2 * self.num_layers, batch_size, self.hidden_dim // 2).cuda()
+            h0 = torch.zeros(
+                2 * self.num_layers, batch_size, self.hidden_dim // 2
+            ).cuda()
+            c0 = torch.zeros(
+                2 * self.num_layers, batch_size, self.hidden_dim // 2
+            ).cuda()
         else:
-            h0 = torch.zeros(2 * self.num_layers, batch_size, self.hidden_dim // 2)
-            c0 = torch.zeros(2 * self.num_layers, batch_size, self.hidden_dim // 2)
+            h0 = torch.zeros(
+                2 * self.num_layers, batch_size, self.hidden_dim // 2
+            )
+            c0 = torch.zeros(
+                2 * self.num_layers, batch_size, self.hidden_dim // 2
+            )
         return (h0, c0)
 
     def attention(self, rnn_out, state):
-
         att = self.attn_fc(rnn_out)
         att = torch.softmax(att, dim=1)
         r_att = torch.sum(att * rnn_out, dim=1)
         return r_att
-
-        # merged_state = torch.cat([s for s in state], 1)
-        # merged_state = merged_state.unsqueeze(2)
-        # # (batch, seq_len, cell_size) * (batch, cell_size, 1) = (batch, seq_len, 1)
-        # weights = torch.bmm(rnn_out, merged_state)
-        # weights = torch.nn.functional.softmax(weights.squeeze(2)).unsqueeze(2)
-        # # (batch, cell_size, seq_len) * (batch, seq_len, 1) = (batch, cell_size, 1)
-        # return torch.bmm(torch.transpose(rnn_out, 1, 2), weights).squeeze(2)
 
     def forward(self, X):
         hidden = self.init_hidden(X.size()[0])
@@ -59,11 +58,16 @@ class LSTMAttention(torch.nn.Module):
 
     def predict(self, review, text_field):
         preprocessed_review = text_field.preprocess(review)
+
         if len(preprocessed_review) > self.pad_length:
             preprocessed_review = preprocessed_review[:self.pad_length]
         else:
-            preprocessed_review = preprocessed_review + ['<pad>'] * (self.pad_length - len(preprocessed_review))
-        embedding = [text_field.vocab.vectors[text_field.vocab.stoi[word]] for word in preprocessed_review]
+            preprocessed_review = preprocessed_review + \
+                ['<pad>'] * (self.pad_length - len(preprocessed_review))
+
+        embedding = [
+            text_field.vocab.vectors[text_field.vocab.stoi[word]] for word in preprocessed_review
+        ]
         embedding = torch.stack(embedding).unsqueeze(0).cuda()
         prediction = self.forward(embedding)
         prob = torch.softmax(prediction, dim=1)

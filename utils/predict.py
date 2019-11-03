@@ -12,14 +12,18 @@ def append_endtag(full_review):
 
 
 def predict(string, epoch):
-
     model = LSTMAttention().cuda()
     model.batch_size = 1
 
-    pretrained_dict = torch.load('../models/IMDB_model_{}.pt'.format(epoch))['state_dict']
+    pretrained_dict = torch.load(
+        '../models/IMDB_model_{}.pt'.format(epoch)
+    )['state_dict']
     model_dict = model.state_dict()
+
     # 1. filter out unnecessary keys
-    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    pretrained_dict = {k: v for k,
+                       v in pretrained_dict.items() if k in model_dict}
+
     # 2. overwrite entries in the existing state dict
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)

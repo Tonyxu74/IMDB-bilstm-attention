@@ -20,20 +20,21 @@ class IMDB_dataset(data.Dataset):
         """
 
         self.eval = eval
-        dataset = []
+        self.dataset = []
 
         dataframe = pd.read_csv(path, sep="\t", encoding="utf-8")
 
         for i in range(dataframe.shape[0]):
-            dataset.append({
-                    'text': text_field.preprocess(dataframe['text'][i]),
-                    'label': dataframe['label'][i]
-                }
-            )
+            self.dataset.append({
+                'text': text_field.preprocess(dataframe['text'][i]),
+                'label': dataframe['label'][i]
+            })
 
-        self.dataset = dataset
         if not self.eval:
-            text_field.build_vocab([t['text'] for t in dataset], vectors=GloVe(name='6B', dim=args.embedding_dims))
+            text_field.build_vocab(
+                [t['text'] for t in dataset],
+                vectors=GloVe(name='6B', dim=args.embedding_dims)
+            )
             label_field.build_vocab(t['label'] for t in dataset)
 
         self.TEXT = text_field
@@ -50,14 +51,23 @@ class IMDB_dataset(data.Dataset):
             text = text[:self.pad_length]
         else:
             text = text + ['<pad>'] * (self.pad_length - len(text))
-        embedding = [self.TEXT.vocab.vectors[self.TEXT.vocab.stoi[t]] for t in text]
+        embedding = [
+            self.TEXT.vocab.vectors[self.TEXT.vocab.stoi[t]] for t in text
+        ]
         embedding = torch.stack(embedding)
         label = self.dataset[index]['label']
 
         return embedding, label
 
 
-def GenerateIter(path, text_field, label_field, pad_length, eval=False, shuffle=True):
+def GenerateIter(
+    path,
+    text_field,
+    label_field,
+    pad_length,
+    eval=False,
+    shuffle=True
+):
     params = {
         'batch_size': args.batch_size,
         'shuffle': shuffle,
@@ -66,5 +76,13 @@ def GenerateIter(path, text_field, label_field, pad_length, eval=False, shuffle=
         'drop_last': False,
     }
 
-    return torchdata.DataLoader(IMDB_dataset(path, text_field=text_field, label_field=label_field, pad_length=pad_length, eval=eval), **params)
-
+    return torchdata.DataLoader(
+        IMDB_dataset(
+            path,
+            text_field=text_field,
+            label_field=label_field,
+            pad_length=pad_length,
+            eval=eval
+        ),
+        **params
+    )
